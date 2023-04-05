@@ -13,90 +13,65 @@ class TestLogin(unittest.TestCase):
         self.username_field.clear()
         self.password_field.clear()
 
+    def setUp(self):
+        self.driver = webdriver.Chrome()
+
     def tearDown(self):
         self.driver.quit()
 
-    def test_empty_username(self):
-
-        self.password_field.send_keys("anypassword")
-        self.submit_button.click()
-
-        password_error_msg = self.driver.find_element(By.XPATH, "//div[@id='login_button_container']/div/form/div[3]/h3")
+    def test_scenario_1(self):
+        self.driver.get("https://www.saucedemo.com/")
         self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertEqual(password_error_msg.text, "Epic sadface: Username is required")
 
-    def test_invalid_user(self):
+    def test_scenario_2(self):
+        self.driver.get("https://www.saucedemo.com/")
+        self.username_field = self.driver.find_element(By.NAME, "user-name")
+        self.password_field = self.driver.find_element(By.NAME, "password")
+        self.submit_button = self.driver.find_element(By.NAME, "login-button")
+        self.username_field.clear()
+        self.password_field.clear()
 
-        self.username_field.send_keys("invaliduser")
-        self.password_field.send_keys("wrongpassword")
-        self.submit_button.click()
-
-        password_error_msg = self.driver.find_element(By.XPATH, "//div[@id='login_button_container']/div/form/div[3]/h3")
-        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertEqual(password_error_msg.text, "Epic sadface: Username and password do not match any user in this service")
-
-    def test_invalid_password(self):
-
-        self.username_field.send_keys("standard_user")
-        self.password_field.send_keys("wrongpassword")
-        self.submit_button.click()
-
-        password_error_msg = self.driver.find_element(By.XPATH, "//div[@id='login_button_container']/div/form/div[3]/h3")
-        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertEqual(password_error_msg.text, "Epic sadface: Username and password do not match any user in this service")
-
-    def test_empty_password(self):
-
-        self.username_field.send_keys("exampleuser")
-        self.submit_button.click()
-
-        password_error_msg = self.driver.find_element(By.XPATH, "//div[@id='login_button_container']/div/form/div[3]/h3")
-        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertIn("Epic sadface: Password is required", self.driver.page_source)
-
-    def test_whitespace_username(self):
-
-        self.username_field.send_keys("  standard_user  ")
-        self.password_field.send_keys("secret_sauce")
-        self.submit_button.click()
-
-        password_error_msg = self.driver.find_element(By.XPATH, "//div[@id='login_button_container']/div/form/div[3]/h3")
-        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertEqual(password_error_msg.text, "Epic sadface: Username and password do not match any user in this service")
-
-    def test_whitespace_password(self):
-
-        self.username_field.send_keys("standard_user")
-        self.password_field.send_keys("  secret_sauce ")
-        self.submit_button.click()
-
-        password_error_msg = self.driver.find_element(By.XPATH, "//div[@id='login_button_container']/div/form/div[3]/h3")
-        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertEqual(password_error_msg.text, "Epic sadface: Username and password do not match any user in this service")
-
-    def test_whitespace_username(self):
-
-        self.username_field.send_keys(" stan\u200bdard_user  ")
-        self.password_field.send_keys("secret_sauce")
-        self.submit_button.click()
-
-        password_error_msg = self.driver.find_element(By.XPATH, "//div[@id='login_button_container']/div/form/div[3]/h3")
-        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertEqual(password_error_msg.text, "Epic sadface: Username and password do not match any user in this service")
-
-
-    def test_successful_login(self):
         self.username_field.send_keys("standard_user")
         self.password_field.send_keys("secret_sauce")
         self.submit_button.click()
+
         self.assertNotEqual(self.driver.current_url, "https://www.saucedemo.com/")
         self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/inventory.html")
 
-    def test_invalid_credentials(self):
-        self.username_field.send_keys("invalidusername")
-        self.password_field.send_keys("invalidpassword")
+        product_list = self.driver.find_elements(By.CLASS_NAME, "inventory_item_name")
+        self.assertTrue(len(product_list) > 0)
+
+    def test_scenario_3(self):
+        self.driver.get("https://www.saucedemo.com/")
+        self.username_field = self.driver.find_element(By.NAME, "user-name")
+        self.password_field = self.driver.find_element(By.NAME, "password")
+        self.submit_button = self.driver.find_element(By.NAME, "login-button")
+        self.username_field.clear()
+        self.password_field.clear()
+
+        self.username_field.send_keys("standard_user")
+        self.password_field.send_keys("secret_sauce")
         self.submit_button.click()
 
-        error_msg = self.driver.find_element(By.XPATH, "//h3[@data-test='error']")
-        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/")
-        self.assertEqual(error_msg.text, "Epic sadface: Username and password do not match any user in this service")
+        self.assertNotEqual(self.driver.current_url, "https://www.saucedemo.com/")
+        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/inventory.html")
+
+        product_list = self.driver.find_elements(By.CLASS_NAME, "inventory_item_name")
+        self.assertTrue(len(product_list) > 0)
+
+        first_product = product_list[0]
+        self.assertEqual(first_product.text, "Sauce Labs Backpack")
+        first_product.click()
+
+        self.assertEqual(self.driver.current_url, "https://www.saucedemo.com/inventory-item.html?id=4")
+        description = self.driver.find_element(By.CLASS_NAME, "inventory_details_desc")
+        self.assertEqual(description.text, "carry.allTheThings() with the sleek, streamlined Sly Pack that melds uncompromising style with unequaled laptop and tablet protection.")
+        self.assertTrue("sleek, streamlined" in description.text)
+        self.assertFalse("waterproof" in description.text)
+
+        add_to_cart_button = self.driver.find_element(By.CLASS_NAME, "btn_inventory")
+        self.assertTrue(add_to_cart_button.is_enabled())
+        add_to_cart_button.click()
+
+        cart_quantity = self.driver.find_element(By.CLASS_NAME, "shopping_cart_badge")
+        self.assertEqual(cart_quantity.text, "1")
